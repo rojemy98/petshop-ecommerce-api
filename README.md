@@ -8,26 +8,26 @@ The project uses a layered architecture separating routes, services, repositorie
 
 ## Table of Contents
 
-- [Features](#features)
-- [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Technologies](#technologies)
-- [Database](#database)
-- [Database ER Diagram](#database-er-diagram)
-- [API Documentation](#api-documentation)
-- [Installation](#installation)
-- [Project Setup](#project-setup)
-- [Quick Start](#quick-start)
-- [Authentication](#authentication)
-- [Roles](#roles)
-- [Redis Cache](#redis-cache)
-- [Transactions](#transactions)
-- [Testing](#testing)
-- [Automated Test Report](#automated-test-report)
-- [Test Coverage](#test-coverage)
-- [Security](#security)
-- [Recommended .gitignore](#recommended-gitignore)
-- [Author](#author)
+* [Features](#features)
+* [Architecture](#architecture)
+* [Project Structure](#project-structure)
+* [Technologies](#technologies)
+* [Database](#database)
+* [Database ER Diagram](#database-er-diagram)
+* [API Documentation](#api-documentation)
+* [Installation](#installation)
+* [Project Setup](#project-setup)
+* [Quick Start](#quick-start)
+* [Authentication](#authentication)
+* [Roles](#roles)
+* [Redis Cache](#redis-cache)
+* [Transactions](#transactions)
+* [Testing](#testing)
+* [Automated Test Report](#automated-test-report)
+* [Test Coverage](#test-coverage)
+* [Security](#security)
+* [Recommended .gitignore](#recommended-gitignore)
+* [Author](#author)
 
 ---
 
@@ -35,39 +35,39 @@ The project uses a layered architecture separating routes, services, repositorie
 
 ### Authentication and Authorization
 
-- User registration and login
-- Password hashing
-- JWT authentication using RS256
-- Role-based authorization
-- CLIENT and ADMIN roles
-- Login attempt history
-- Protected endpoints
+* User registration and login
+* Password hashing
+* JWT authentication using RS256
+* Role-based authorization
+* CLIENT and ADMIN roles
+* Login attempt history
+* Protected endpoints
 
 ### Product Management
 
 Administrators can:
 
-- Create products
-- Update products
-- Disable products
-- Manage product stock
+* Create products
+* Update products
+* Disable products
+* Manage product stock
 
 Clients can:
 
-- View available products
-- Add products to their shopping cart
+* View available products
+* Add products to their shopping cart
 
 ### Shopping Cart
 
 Clients can:
 
-- Create or retrieve their active cart
-- Add products
-- Modify product quantities
-- Remove products
-- View previous carts
-- Abandon carts
-- Complete checkout
+* Create or retrieve their active cart
+* Add products
+* Modify product quantities
+* Remove products
+* View previous carts
+* Abandon carts
+* Complete checkout
 
 Product stock is validated when products are added to the cart and validated again during checkout.
 
@@ -77,10 +77,10 @@ Stock is only deducted when checkout is successfully completed.
 
 Clients can:
 
-- Create billing addresses
-- View their addresses
-- Update addresses
-- Delete addresses
+* Create billing addresses
+* View their addresses
+* Update addresses
+* Delete addresses
 
 Ownership validation prevents users from accessing billing addresses belonging to other users.
 
@@ -106,16 +106,16 @@ The database operations are executed as a transaction.
 
 Invoices contain:
 
-- Unique invoice number
-- User
-- Billing address
-- Products purchased
-- Product quantities
-- Purchase prices
-- Total amount
-- Payment information
-- Purchase date
-- Invoice status
+* Unique invoice number
+* User
+* Billing address
+* Products purchased
+* Product quantities
+* Purchase prices
+* Total amount
+* Payment information
+* Purchase date
+* Invoice status
 
 Clients can access only their own invoices.
 
@@ -127,24 +127,24 @@ The API supports product return requests.
 
 Return statuses:
 
-- `REQUESTED`
-- `APPROVED`
-- `REJECTED`
-- `COMPLETED`
+* `REQUESTED`
+* `APPROVED`
+* `REJECTED`
+* `COMPLETED`
 
 When a return is completed:
 
-- Returned quantities are validated.
-- Product stock is restored.
-- Invoice return status is recalculated.
-- Redis product cache is invalidated.
+* Returned quantities are validated.
+* Product stock is restored.
+* Invoice return status is recalculated.
+* Redis product cache is invalidated.
 
 Invoice statuses include:
 
-- `PAID`
-- `PARTIALLY_REFUNDED`
-- `REFUNDED`
-- `CANCELLED`
+* `PAID`
+* `PARTIALLY_REFUNDED`
+* `REFUNDED`
+* `CANCELLED`
 
 ---
 
@@ -194,7 +194,7 @@ Represent database entities and relationships.
 ## Project Structure
 
 ```text
-petshop-api/
+petshop-ecommerce-api/
 │
 ├── app.py
 ├── .env
@@ -213,8 +213,7 @@ petshop-api/
 │   └── constants.py
 │
 ├── database/
-│   ├── db_manager.py
-│   └── create_tables.py
+│   └── db_manager.py
 │
 ├── keys/
 │   ├── private.pem
@@ -266,8 +265,10 @@ petshop-api/
 │   └── return_service.py
 │
 ├── scripts/
-│   ├── seed.py
-│   └── ...
+│   ├── create_tables.py
+│   ├── generate_keys.py
+│   ├── run_tests.py
+│   └── seed.py
 │
 └── tests/
     ├── test_auth_service.py
@@ -285,16 +286,16 @@ petshop-api/
 
 The project uses:
 
-- Python
-- Flask
-- PostgreSQL
-- SQLAlchemy
-- Redis
-- PyJWT
-- RSA / RS256
-- Werkzeug
-- pytest
-- pytest-cov
+* Python
+* Flask
+* PostgreSQL
+* SQLAlchemy
+* Redis
+* PyJWT
+* RSA / RS256
+* Werkzeug
+* pytest
+* pytest-cov
 
 ---
 
@@ -330,8 +331,7 @@ SQLAlchemy relationships are used to represent associations between entities.
 
 ## Database ER Diagram
 
-The following Entity-Relationship Diagram represents the PostgreSQL
-database structure used by the application.
+The following Entity-Relationship Diagram represents the PostgreSQL database structure used by the application.
 
 ![PetShop E-Commerce Database ER Diagram](docs/database-diagram.jpg)
 
@@ -339,8 +339,7 @@ database structure used by the application.
 
 ## API Documentation
 
-Complete endpoint documentation, authentication requirements,
-request bodies, and examples are available here:
+Complete endpoint documentation, authentication requirements, request bodies, and examples are available here:
 
 [View API Documentation](docs/API.md)
 
@@ -351,13 +350,13 @@ request bodies, and examples are available here:
 ### 1. Clone the repository
 
 ```bash
-git clone -b proyecto-final-flask https://github.com/rojemy98/DUAD_Lyfter.git
+git clone https://github.com/rojemy98/petshop-ecommerce-api.git
 ```
 
 ### 2. Navigate to the project directory
 
 ```bash
-cd DUAD_Lyfter/06-flask/06-proyecto-final/petshop-api
+cd petshop-ecommerce-api
 ```
 
 ### 3. Create and activate a virtual environment
@@ -406,9 +405,9 @@ Make sure PostgreSQL and Redis are available before starting the application.
 
 ## Project Setup
 
-After installing the dependencies and configuring the `.env` file, run the following setup steps from the `petshop-api` directory.
+After installing the dependencies and configuring the `.env` file, run the following setup steps from the `petshop-ecommerce-api` directory.
 
-### 1. Generate RSA keys
+### 1. Generate RSA Keys
 
 The application uses RS256 for JWT authentication.
 
@@ -430,14 +429,14 @@ The private key is used to sign JWT tokens and the public key is used to verify 
 
 > Never commit `private.pem` to a public repository.
 
-### 2. Create the database tables
+### 2. Create the Database Tables
 
 Make sure the PostgreSQL database specified in `DATABASE_URL` already exists.
 
 Then run:
 
 ```bash
-python -m database.create_tables
+python -m scripts.create_tables
 ```
 
 This creates the required tables using SQLAlchemy ORM inside the PostgreSQL schema:
@@ -448,7 +447,7 @@ petshop_ecommerce
 
 No SQL scripts are required.
 
-### 3. Seed the database
+### 3. Seed the Database
 
 To populate the database with initial or test data, run:
 
@@ -488,7 +487,7 @@ Redis will now be available at:
 redis://localhost:6379/0
 ```
 
-#### Managing the Redis container
+#### Managing the Redis Container
 
 If the container already exists but is stopped, start it with:
 
@@ -504,10 +503,7 @@ docker stop petshop-redis
 
 You do not need to run `docker run` every time. That command creates the container. After it has been created, use `docker start` and `docker stop`.
 
----
-
-
-### 5. Run the application
+### 5. Run the Application
 
 ```bash
 python app.py
@@ -527,7 +523,7 @@ After configuring `.env`, the complete setup sequence is:
 
 ```bash
 python -m scripts.generate_keys
-python -m database.create_tables
+python -m scripts.create_tables
 python -m scripts.seed
 python app.py
 ```
@@ -569,22 +565,22 @@ JWT_ACCESS_TOKEN_EXPIRES=900
 
 A client can perform operations such as:
 
-- View products
-- Manage their shopping cart
-- Manage their billing addresses
-- Complete purchases
-- View their invoices
-- Request product returns
+* View products
+* Manage their shopping cart
+* Manage their billing addresses
+* Complete purchases
+* View their invoices
+* Request product returns
 
 ### ADMIN
 
 An administrator can perform administrative operations such as:
 
-- Create products
-- Update products
-- Disable products
-- View administrative resources
-- Manage return statuses
+* Create products
+* Update products
+* Disable products
+* View administrative resources
+* Manage return statuses
 
 ---
 
@@ -611,15 +607,15 @@ or:
 10 minutes
 ```
 
-### Why use a TTL?
+### Why Use a TTL?
 
 Product information is frequently requested.
 
 Caching this information:
 
-- Reduces PostgreSQL queries.
-- Improves response times.
-- Reduces database workload.
+* Reduces PostgreSQL queries.
+* Improves response times.
+* Reduces database workload.
 
 The TTL guarantees that cached information eventually expires even if explicit invalidation does not occur.
 
@@ -629,11 +625,11 @@ Cache entries are invalidated when product information may change.
 
 Examples include:
 
-- Product creation
-- Product update
-- Product deletion/deactivation
-- Checkout
-- Completed returns
+* Product creation
+* Product update
+* Product deletion/deactivation
+* Checkout
+* Completed returns
 
 PostgreSQL remains the source of truth.
 
@@ -701,8 +697,7 @@ htmlcov/index.html
 
 ## Automated Test Report
 
-The project includes a test runner that executes the complete unit test
-suite and generates a coverage report.
+The project includes a test runner that executes the complete unit test suite and generates a coverage report.
 
 ```bash
 python -m scripts.run_tests
@@ -731,18 +726,18 @@ TOTAL                                   99%
 
 The tests cover both successful operations and important failure scenarios such as:
 
-- Invalid authentication
-- Duplicate users
-- Invalid product information
-- Insufficient stock
-- Invalid cart operations
-- Unauthorized resource access
-- Invalid billing addresses
-- Checkout failures
-- Invoice ownership
-- Invalid return quantities
-- Invalid return status transitions
-- Transaction rollbacks
+* Invalid authentication
+* Duplicate users
+* Invalid product information
+* Insufficient stock
+* Invalid cart operations
+* Unauthorized resource access
+* Invalid billing addresses
+* Checkout failures
+* Invoice ownership
+* Invalid return quantities
+* Invalid return status transitions
+* Transaction rollbacks
 
 Repositories, database connections, Redis, and JWT dependencies are mocked where appropriate so unit tests remain isolated from external infrastructure.
 
@@ -752,15 +747,15 @@ Repositories, database connections, Redis, and JWT dependencies are mocked where
 
 The project implements several security practices:
 
-- Password hashing
-- JWT authentication
-- RSA-based RS256 token signing
-- Role-based authorization
-- Resource ownership validation
-- Login attempt history
-- Environment variables for secrets
-- Private key separation
-- Input and business-rule validation
+* Password hashing
+* JWT authentication
+* RSA-based RS256 token signing
+* Role-based authorization
+* Resource ownership validation
+* Login attempt history
+* Environment variables for secrets
+* Private key separation
+* Input and business-rule validation
 
 Sensitive files should never be committed to source control.
 
