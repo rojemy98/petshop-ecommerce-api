@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_cors import CORS
 
 from config import (
     DATABASE_URL,
@@ -24,9 +25,22 @@ from routes import (
     create_user_blueprint,
 )
 
-
 def create_app():
     app = Flask(__name__)
+
+    CORS(
+        app,
+        resources={
+            r"/*": {
+                "origins": [
+                    "http://localhost:5173",
+                    "http://127.0.0.1:5173"
+                ]
+            }
+        },
+        allow_headers=["Content-Type", "Authorization"],
+        methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"]
+    )    
 
     db_manager = DatabaseManager(DATABASE_URL)
 
