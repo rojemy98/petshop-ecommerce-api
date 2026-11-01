@@ -141,6 +141,89 @@ def create_user_blueprint(
         finally:
             session.close()
 
+    
+    @user_bp.route("/me/password", methods=["PUT"])
+    @jwt_required(jwt_manager)
+    def change_current_user_password():
+
+        data = request.get_json(silent=True)
+
+        if not isinstance(data, dict):
+            return jsonify({
+                "message": "Invalid request body."
+            }), 400
+
+        required_fields = {
+            "current_password",
+            "new_password",
+            "confirm_password"
+        }
+
+        if set(data.keys()) != required_fields:
+            return jsonify({
+                "message": (
+                    "Required fields: current_password, "
+                    "new_password, confirm_password."
+                )
+            }), 400
+
+        current_password = data["current_password"]
+        new_password = data["new_password"]
+        confirm_password = data["confirm_password"]
+
+        if not all(
+            isinstance(value, str) and value
+            for value in (
+                current_password,
+                new_password,
+                confirm_password
+            )
+        ):
+            return jsonify({
+                "message": "All password fields are required."
+            }), 400
+
+        if new_password != confirm_password:
+            return jsonify({
+                "message": "New passwords do not match."
+            }), 400
+
+        session = db_manager.create_session()
+
+        try:
+            service = UserService(session)
+
+            user_id = g.user.get("id")
+
+            if user_id is None:
+                return jsonify({
+                    "message": "Invalid user information in token."
+                }), 401
+
+            service.change_password(
+                user_id,
+                current_password,
+                new_password
+            )
+
+            return jsonify({
+                "message": "Password updated successfully."
+            }), 200
+
+        except LookupError as error:
+            return jsonify({
+                "message": str(error)
+            }), 404
+
+        except ValueError as error:
+            return jsonify({
+                "message": str(error)
+            }), 400
+
+        finally:
+            session.close()
+
+
     @user_bp.route("/<int:user_id>",methods=["GET"])
     @jwt_required(jwt_manager)
     @role_required("ADMIN")

@@ -1,4 +1,7 @@
-from werkzeug.security import generate_password_hash
+from werkzeug.security import (
+    generate_password_hash,
+    check_password_hash
+)
 from models import User
 from repositories.users_repository import UsersRepository
 
@@ -129,6 +132,51 @@ class UserService:
         try:
             self.session.delete(user)
             self.session.commit()
+
+        except Exception:
+            self.session.rollback()
+            raise
+    
+    def change_password(
+        self,
+        user_id,
+        current_password,
+        new_password
+    ):
+        user = self.get_user_by_id(user_id)
+
+        if not check_password_hash(
+            user.password_hash,
+            current_password
+        ):
+            raise ValueError("Current password is incorrect.")
+
+        if len(new_password) < 8:
+            raise ValueError(
+                "New password must contain at least 8 characters."
+            )
+
+        if len(new_password) > 128:
+            raise ValueError(
+                "New password cannot exceed 128 characters."
+            )
+
+        if check_password_hash(
+            user.password_hash,
+            new_password
+        ):
+            raise ValueError(
+                "New password must be different from the current password."
+            )
+
+        try:
+            user.password_hash = generate_password_hash(
+                new_password
+            )
+
+            self.session.commit()
+
+            return True
 
         except Exception:
             self.session.rollback()
