@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, g
 
 from auth.decorators import jwt_required, role_required
 from services.user_service import UserService
@@ -31,6 +31,36 @@ def create_user_blueprint(
                 user.to_dict()
                 for user in users
             ]), 200
+
+        finally:
+            session.close()
+
+    @user_bp.route("/me", methods=["GET"])
+    @jwt_required(jwt_manager)
+    def get_current_user():
+
+        session = db_manager.create_session()
+
+        try:
+            service = UserService(session)
+
+            user_id = g.user.get("id")
+
+            if user_id is None:
+                return jsonify({
+                    "message": "Invalid user information in token."
+                }), 401
+
+            user = service.get_user_by_id(user_id)
+
+            return jsonify({
+                "user": user.to_dict()
+            }), 200
+
+        except LookupError as error:
+            return jsonify({
+                "message": str(error)
+            }), 404
 
         finally:
             session.close()

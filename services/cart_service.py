@@ -25,6 +25,27 @@ class CartService:
 
         return cart
 
+    
+    def get_cart(
+        self,
+        cart_id: int,
+        user_id: int
+    ) -> Cart:
+        cart = self.carts_repository.get_cart_with_products(
+            cart_id
+        )
+
+        if cart is None:
+            raise LookupError("Cart not found.")
+
+        if cart.user_id != user_id:
+            raise PermissionError(
+                "You do not have permission to access this cart."
+            )
+
+        return cart
+
+
     def create_cart(self, user_id):
 
         active_cart = (
