@@ -65,6 +65,82 @@ def create_user_blueprint(
         finally:
             session.close()
 
+    @user_bp.route("/me", methods=["PUT"])
+    @jwt_required(jwt_manager)
+    def update_current_user():
+
+        data = request.get_json(silent=True)
+
+        if not isinstance(data, dict) or not data:
+            return jsonify({
+                "message": "Request body is required."
+            }), 400
+
+        allowed_fields = {
+            "name",
+            "last_name",
+            "email"
+        }
+
+        invalid_fields = set(data) - allowed_fields
+
+        if invalid_fields:
+            return jsonify({
+                "message": (
+                    "Invalid fields: "
+                    + ", ".join(sorted(invalid_fields))
+                )
+            }), 400
+
+        for field, value in data.items():
+
+            if not isinstance(value, str) or not value.strip():
+                return jsonify({
+                    "message": f"{field} must be a non-empty string."
+                }), 400
+
+            max_length = 150 if field == "email" else 100
+
+            if len(value.strip()) > max_length:
+                return jsonify({
+                    "message": f"{field} exceeds the maximum length."
+                }), 400
+
+        session = db_manager.create_session()
+
+        try:
+            service = UserService(session)
+
+            user_id = g.user.get("id")
+
+            if user_id is None:
+                return jsonify({
+                    "message": "Invalid user information in token."
+                }), 401
+
+            user = service.update_user(
+                user_id,
+                data
+            )
+
+            return jsonify({
+                "message": "Profile updated successfully.",
+                "user": user.to_dict()
+            }), 200
+
+        except LookupError as error:
+            return jsonify({
+                "message": str(error)
+            }), 404
+
+        except ValueError as error:
+            return jsonify({
+                "message": str(error)
+            }), 400
+
+        finally:
+            session.close()
+
     @user_bp.route("/<int:user_id>",methods=["GET"])
     @jwt_required(jwt_manager)
     @role_required("ADMIN")
