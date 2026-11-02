@@ -232,10 +232,25 @@ class UserService:
                 new_password
             )
 
+            user.token_version += 1
+
             self.session.commit()
 
             return True
 
+        except Exception:
+            self.session.rollback()
+            raise
+
+    def revoke_user_sessions(self, user_id: int):
+        user = self.session.get(User, user_id)
+
+        if not user:
+            raise LookupError("User not found.")
+
+        try:
+            user.token_version += 1
+            self.session.commit()
         except Exception:
             self.session.rollback()
             raise

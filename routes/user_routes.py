@@ -376,4 +376,31 @@ def create_user_blueprint(
         finally:
             session.close()
 
+    @user_bp.route(
+        "/<int:user_id>/revoke-sessions",
+        methods=["POST"]
+    )
+    @jwt_required(jwt_manager, db_manager)
+    @role_required("ADMIN")
+    def revoke_user_sessions(user_id):
+
+        session = db_manager.create_session()
+
+        try:
+            service = UserService(session)
+
+            service.revoke_user_sessions(user_id)
+
+            return jsonify({
+                "message": "User sessions revoked successfully."
+            }), 200
+
+        except LookupError as error:
+            return jsonify({
+                "message": str(error)
+            }), 404
+
+        finally:
+            session.close()
+
     return user_bp

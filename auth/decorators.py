@@ -48,12 +48,16 @@ def jwt_required(jwt_manager: JWTManager, db_manager):
 
             user_id = payload.get("id")
             token_role = payload.get("role")
+            token_version = payload.get("token_version")
 
             if (
                 not isinstance(user_id, int)
                 or isinstance(user_id, bool)
                 or user_id <= 0
                 or not isinstance(token_role, str)
+                or not isinstance(token_version, int)
+                or isinstance(token_version, bool)
+                or token_version < 0
             ):
                 return jsonify({
                     "message": "Invalid user information in token."
@@ -73,6 +77,14 @@ def jwt_required(jwt_manager: JWTManager, db_manager):
                     return jsonify({
                         "message": (
                             "Your permissions have changed. "
+                            "Please log in again."
+                        )
+                    }), 401
+
+                if user.token_version != token_version:
+                    return jsonify({
+                        "message": (
+                            "Your session is no longer valid. "
                             "Please log in again."
                         )
                     }), 401

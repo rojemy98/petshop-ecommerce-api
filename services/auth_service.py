@@ -137,15 +137,11 @@ class AuthService:
         except Exception:
             self.session.rollback()
             raise
+        
+    def _generate_access_token(self, user: User) -> str:
 
-    def _generate_access_token(
-        self,
-        user: User
-    ) -> str:
-
-        return self.jwt_manager.encode(
-            {
-                "id": user.id,
-                "role": user.role
-            }
-        )
+        return self.jwt_manager.encode({
+            "id": user.id,
+            "role": user.role,
+            "token_version": user.token_version
+        })

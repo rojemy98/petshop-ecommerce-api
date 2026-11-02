@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 
-from sqlalchemy import String, DateTime, CheckConstraint
+from sqlalchemy import String, DateTime, CheckConstraint, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, SCHEMA_NAME
@@ -36,6 +36,13 @@ class User(Base):
         String(20),
         nullable=False,
         default="CLIENT"
+    )
+
+    token_version: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+        server_default="0"
     )
 
     registration_date: Mapped[datetime] = mapped_column(
