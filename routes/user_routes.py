@@ -358,7 +358,8 @@ def create_user_blueprint(
             service = UserService(session)
 
             service.delete_user(
-                user_id
+                user_id,
+                g.user.get("id")
             )
 
             return "", 204

@@ -70,9 +70,19 @@ def jwt_required(jwt_manager: JWTManager, db_manager):
 
                 if user is None:
                     return jsonify({
-                        "message": "User associated with this token no longer exists."
+                        "message": (
+                            "User associated with this token "
+                            "no longer exists."
+                        )
                     }), 401
 
+                # Validate account status
+                if not user.is_active:
+                    return jsonify({
+                        "message": "Your account is inactive."
+                    }), 401
+
+                # Validate current role
                 if user.role != token_role:
                     return jsonify({
                         "message": (
@@ -81,6 +91,7 @@ def jwt_required(jwt_manager: JWTManager, db_manager):
                         )
                     }), 401
 
+                # Validate token version
                 if user.token_version != token_version:
                     return jsonify({
                         "message": (
@@ -91,7 +102,8 @@ def jwt_required(jwt_manager: JWTManager, db_manager):
 
                 g.user = {
                     **payload,
-                    "role": user.role
+                    "role": user.role,
+                    "is_active": user.is_active
                 }
 
             finally:

@@ -106,6 +106,17 @@ class AuthService:
                 "Invalid email or password."
             )
 
+        if not user.is_active:
+            self._register_login_attempt(
+                user_id=user.id,
+                ip_address=ip_address,
+                success=False
+            )
+
+            raise ValueError(
+                "Your account is inactive."
+            )
+
         self._register_login_attempt(
             user_id=user.id,
             ip_address=ip_address,
@@ -137,7 +148,8 @@ class AuthService:
         except Exception:
             self.session.rollback()
             raise
-        
+
+
     def _generate_access_token(self, user: User) -> str:
 
         return self.jwt_manager.encode({

@@ -1,6 +1,6 @@
 from datetime import datetime, UTC
 
-from sqlalchemy import String, DateTime, CheckConstraint, Integer
+from sqlalchemy import String, DateTime, CheckConstraint, Integer, Boolean
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .base import Base, SCHEMA_NAME
@@ -49,6 +49,13 @@ class User(Base):
         DateTime(timezone=True),
         nullable=False,
         default=lambda: datetime.now(UTC)
+    )
+
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true"
     )
 
     __table_args__ = (

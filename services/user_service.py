@@ -183,12 +183,40 @@ class UserService:
             self.session.rollback()
             raise
 
-    def delete_user(self, user_id):
+    def delete_user(self, user_id, requesting_user_id):
 
         user = self.get_user_by_id(user_id)
 
+        if user_id == requesting_user_id:
+            raise ValueError(
+                "You cannot deactivate your own account."
+            )
+
+        if not user.is_active:
+            raise ValueError(
+                "User is already inactive."
+            )
+
+        if user.role == "ADMIN":
+
+            admin_count = (
+                self.session.query(User)
+                .filter(
+                    User.role == "ADMIN",
+                    User.is_active.is_(True)
+                )
+                .count()
+            )
+
+            if admin_count <= 1:
+                raise ValueError(
+                    "Cannot deactivate the last active administrator."
+                )
+
         try:
-            self.session.delete(user)
+            user.is_active = False
+            user.token_version += 1
+
             self.session.commit()
 
         except Exception:
