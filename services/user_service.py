@@ -12,8 +12,12 @@ class UserService:
         self.session = session
         self.repository = UsersRepository(session)
 
-    def get_users(self):
-        return self.repository.get_all()
+    def get_users(self, include_inactive=False):
+
+        if include_inactive:
+            return self.repository.get_all()
+
+        return self.repository.get_all_active()
 
     def get_user_by_id(self, user_id):
 

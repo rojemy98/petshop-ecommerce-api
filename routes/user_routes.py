@@ -20,12 +20,24 @@ def create_user_blueprint(
     @role_required("ADMIN")
     def get_users():
 
+        include_inactive = request.args.get(
+            "include_inactive",
+            "false"
+        ).lower()
+
+        if include_inactive not in {"true", "false"}:
+            return jsonify({
+                "message": "include_inactive must be true or false."
+            }), 400
+
         session = db_manager.create_session()
 
         try:
             service = UserService(session)
 
-            users = service.get_users()
+            users = service.get_users(
+                include_inactive=include_inactive == "true"
+            )
 
             return jsonify([
                 user.to_dict()

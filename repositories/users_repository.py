@@ -16,3 +16,12 @@ class UsersRepository(BaseRepository[User]):
         )
 
         return self.session.execute(statement).scalar_one_or_none()
+
+    def get_all_active(self) -> list[User]:
+        statement = select(self.model).where(
+            self.model.is_active.is_(True)
+        )
+
+        result = self.session.execute(statement)
+
+        return list(result.scalars().all())
