@@ -113,6 +113,38 @@ def create_products_blueprint(
         finally:
             session.close()
 
+    @products_bp.route("/admin", methods=["GET"])
+    @jwt_required(jwt_manager, db_manager)
+    @role_required("ADMIN")
+    def get_all_products_admin():
+        cache_key = "products:admin:all"
+
+        cached_data = cache_manager.get_data(cache_key)
+
+        if cached_data is not None:
+            return jsonify(json.loads(cached_data)), 200
+
+        session = db_manager.create_session()
+
+        try:
+            service = ProductService(session)
+            products = service.get_all_products()
+
+            products_data = [
+                product.to_dict() for product in products
+            ]
+
+            cache_manager.store_data(
+                cache_key,
+                json.dumps(products_data),
+                CACHE_TTL
+            )
+
+            return jsonify(products_data), 200
+
+        finally:
+            session.close()
+
     @products_bp.route("", methods=["POST"])
     @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
