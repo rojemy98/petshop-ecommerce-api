@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 
 from models import BillingAddress
 from repositories import BillingAddressesRepository
+from models.invoice import Invoice
 
 
 class BillingAddressService:
@@ -119,22 +120,23 @@ class BillingAddressService:
             self.session.rollback()
             raise
 
-    def delete_address(
-        self,
-        address_id: int,
-        user_id: int
-    ) -> None:
+    def delete_address(self, address_id, user_id):
+        address = self.get_address(address_id, user_id)
 
-        address = self.get_address(
-            address_id,
-            user_id
+        related_invoice = (
+            self.session.query(Invoice)
+            .filter(Invoice.billing_address_id == address_id)
+            .first()
         )
+
+        if related_invoice:
+            raise ValueError(
+                "No se puede eliminar esta dirección porque está asociada a una o más facturas."
+            )
 
         try:
             self.repository.delete(address)
             self.session.commit()
-
         except Exception:
             self.session.rollback()
             raise
-        

@@ -172,16 +172,14 @@ def create_billing_addresses_blueprint(
         finally:
             session.close()
 
-    @addresses_bp.route("/<int:address_id>",methods=["DELETE"])
+    @addresses_bp.route("/<int:address_id>", methods=["DELETE"])
     @jwt_required(jwt_manager)
     def delete_address(address_id):
 
         session = db_manager.create_session()
 
         try:
-            service = BillingAddressService(
-                session
-            )
+            service = BillingAddressService(session)
 
             service.delete_address(
                 address_id=address_id,
@@ -199,6 +197,11 @@ def create_billing_addresses_blueprint(
             return jsonify({
                 "message": str(error)
             }), 403
+
+        except ValueError as error:
+            return jsonify({
+                "message": str(error)
+            }), 409
 
         finally:
             session.close()
