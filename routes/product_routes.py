@@ -24,13 +24,7 @@ def create_products_blueprint(
     @jwt_required(jwt_manager, db_manager)
     def get_products():
 
-        is_admin = g.user["role"] == "ADMIN"
-
-        cache_key = (
-            "products:admin:all"
-            if is_admin
-            else "products:available"
-        )
+        cache_key = "products:available"
 
         cached_data = cache_manager.get_data(cache_key)
 
@@ -42,10 +36,7 @@ def create_products_blueprint(
         try:
             service = ProductService(session)
 
-            if is_admin:
-                products = service.get_all_products()
-            else:
-                products = service.get_available_products()
+            products = service.get_available_products()
 
             products_data = [
                 product.to_dict()
