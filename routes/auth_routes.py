@@ -115,7 +115,7 @@ def create_auth_blueprint(
             session.close()
 
     @auth_bp.route("/me", methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def me():
         return jsonify({
             "user": g.user

@@ -86,39 +86,97 @@ class UserService:
 
         if invalid_fields:
             raise ValueError(
-                f"Invalid fields: {', '.join(invalid_fields)}"
+                f"Invalid fields: {', '.join(sorted(invalid_fields))}"
             )
 
+        validated_data = {}
+
+        # Validate name
+        if "name" in data:
+            name = data["name"]
+
+            if not isinstance(name, str) or not name.strip():
+                raise ValueError("Name must be a non-empty string.")
+
+            if len(name.strip()) > 100:
+                raise ValueError("Name cannot exceed 100 characters.")
+
+            validated_data["name"] = name.strip()
+
+        # Validate last name
+        if "last_name" in data:
+            last_name = data["last_name"]
+
+            if not isinstance(last_name, str) or not last_name.strip():
+                raise ValueError("Last name must be a non-empty string.")
+
+            if len(last_name.strip()) > 100:
+                raise ValueError("Last name cannot exceed 100 characters.")
+
+            validated_data["last_name"] = last_name.strip()
+
+        # Validate email
         if "email" in data:
-            email = data["email"].strip().lower()
+            email = data["email"]
+
+            if not isinstance(email, str) or not email.strip():
+                raise ValueError("Email must be a non-empty string.")
+
+            email = email.strip().lower()
+
+            if len(email) > 150 or "@" not in email:
+                raise ValueError("Invalid email address.")
 
             existing_user = self.repository.get_by_email(email)
 
             if existing_user and existing_user.id != user_id:
                 raise ValueError("Email is already registered.")
 
-            user.email = email
+            validated_data["email"] = email
 
-        if "name" in data:
-            user.name = data["name"].strip()
-
-        if "last_name" in data:
-            user.last_name = data["last_name"].strip()
-
+        # Validate password
         if "password" in data:
-            user.password_hash = generate_password_hash(
-                data["password"]
-            )
+            password = data["password"]
 
+            if not isinstance(password, str):
+                raise ValueError("Password must be a string.")
+
+            if len(password) < 8 or len(password) > 128:
+                raise ValueError(
+                    "Password must contain between 8 and 128 characters."
+                )
+
+            validated_data["password"] = password
+
+        # Validate role
         if "role" in data:
+            role = data["role"]
 
-            if data["role"] not in ("CLIENT", "ADMIN"):
+            if role not in {"ADMIN", "CLIENT"}:
                 raise ValueError("Invalid role.")
 
-            user.role = data["role"]
+            validated_data["role"] = role
 
         try:
+            if "name" in validated_data:
+                user.name = validated_data["name"]
+
+            if "last_name" in validated_data:
+                user.last_name = validated_data["last_name"]
+
+            if "email" in validated_data:
+                user.email = validated_data["email"]
+
+            if "password" in validated_data:
+                user.password_hash = generate_password_hash(
+                    validated_data["password"]
+                )
+
+            if "role" in validated_data:
+                user.role = validated_data["role"]
+
             self.session.commit()
+
             return user
 
         except Exception:

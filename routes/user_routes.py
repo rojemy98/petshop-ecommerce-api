@@ -16,7 +16,7 @@ def create_user_blueprint(
     )
 
     @user_bp.route("", methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def get_users():
 
@@ -36,7 +36,7 @@ def create_user_blueprint(
             session.close()
 
     @user_bp.route("/me", methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_current_user():
 
         session = db_manager.create_session()
@@ -66,7 +66,7 @@ def create_user_blueprint(
             session.close()
 
     @user_bp.route("/me", methods=["PUT"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def update_current_user():
 
         data = request.get_json(silent=True)
@@ -143,7 +143,7 @@ def create_user_blueprint(
 
     
     @user_bp.route("/me/password", methods=["PUT"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def change_current_user_password():
 
         data = request.get_json(silent=True)
@@ -225,7 +225,7 @@ def create_user_blueprint(
 
 
     @user_bp.route("/<int:user_id>",methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def get_user(user_id):
 
@@ -251,7 +251,7 @@ def create_user_blueprint(
             session.close()
 
     @user_bp.route("", methods=["POST"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def create_user():
 
@@ -307,18 +307,16 @@ def create_user_blueprint(
         finally:
             session.close()
 
-    @user_bp.route("/<int:user_id>",methods=["PUT"])
-    @jwt_required(jwt_manager)
+    @user_bp.route("/<int:user_id>", methods=["PUT"])
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def update_user(user_id):
 
-        data = request.get_json() or {}
+        data = request.get_json(silent=True)
 
-        if not data:
+        if not isinstance(data, dict) or not data:
             return jsonify({
-                "message": (
-                    "Request body is required."
-                )
+                "message": "Request body is required."
             }), 400
 
         session = db_manager.create_session()
@@ -328,12 +326,13 @@ def create_user_blueprint(
 
             user = service.update_user(
                 user_id,
-                data,
+                data
             )
 
-            return jsonify(
-                user.to_dict()
-            ), 200
+            return jsonify({
+                "message": "User updated successfully.",
+                "user": user.to_dict()
+            }), 200
 
         except LookupError as error:
             return jsonify({
@@ -349,7 +348,7 @@ def create_user_blueprint(
             session.close()
 
     @user_bp.route("/<int:user_id>",methods=["DELETE"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def delete_user(user_id):
 

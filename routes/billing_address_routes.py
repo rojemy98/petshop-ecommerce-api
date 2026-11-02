@@ -16,7 +16,7 @@ def create_billing_addresses_blueprint(
     )
 
     @addresses_bp.route("", methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_addresses():
 
         session = db_manager.create_session()
@@ -39,7 +39,7 @@ def create_billing_addresses_blueprint(
             session.close()
 
     @addresses_bp.route("/<int:address_id>",methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_address(address_id):
 
         session = db_manager.create_session()
@@ -72,7 +72,7 @@ def create_billing_addresses_blueprint(
             session.close()
 
     @addresses_bp.route("", methods=["POST"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def create_address():
 
         data = request.get_json()
@@ -127,7 +127,7 @@ def create_billing_addresses_blueprint(
             session.close()
 
     @addresses_bp.route("/<int:address_id>",methods=["PUT"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def update_address(address_id):
 
         data = request.get_json()
@@ -173,7 +173,7 @@ def create_billing_addresses_blueprint(
             session.close()
 
     @addresses_bp.route("/<int:address_id>", methods=["DELETE"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def delete_address(address_id):
 
         session = db_manager.create_session()

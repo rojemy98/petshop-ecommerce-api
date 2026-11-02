@@ -21,7 +21,7 @@ def create_carts_blueprint(
     )
 
     @carts_bp.route("/active", methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_active_cart():
 
         session = db_manager.create_session()
@@ -46,7 +46,7 @@ def create_carts_blueprint(
             session.close()
 
     @carts_bp.route("",methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_carts():
 
         session = db_manager.create_session()
@@ -67,7 +67,7 @@ def create_carts_blueprint(
             session.close()
 
     @carts_bp.route("/<int:cart_id>",methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_cart(cart_id):
 
         session = db_manager.create_session()
@@ -98,7 +98,7 @@ def create_carts_blueprint(
             session.close()
 
     @carts_bp.route("", methods=["POST"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def create_cart():
 
         session = db_manager.create_session()
@@ -123,7 +123,7 @@ def create_carts_blueprint(
             session.close()
 
     @carts_bp.route("/<int:cart_id>/items",methods=["POST"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def add_product(cart_id):
 
         data = request.get_json()
@@ -177,7 +177,7 @@ def create_carts_blueprint(
             session.close()
 
     @carts_bp.route("/<int:cart_id>/items/<int:product_id>",methods=["PUT"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def update_product_quantity(cart_id, product_id):
 
         data = request.get_json()
@@ -227,7 +227,7 @@ def create_carts_blueprint(
             session.close()
 
     @carts_bp.route("/<int:cart_id>/items/<int:product_id>",methods=["DELETE"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def remove_product(
         cart_id,
         product_id
@@ -267,7 +267,7 @@ def create_carts_blueprint(
             session.close()
 
     @carts_bp.route("/<int:cart_id>",methods=["DELETE"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def abandon_cart(cart_id):
 
         session = db_manager.create_session()
@@ -303,7 +303,7 @@ def create_carts_blueprint(
             session.close()
 
     @carts_bp.route("/<int:cart_id>/checkout",methods=["POST"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def checkout(cart_id):
 
         data = request.get_json()

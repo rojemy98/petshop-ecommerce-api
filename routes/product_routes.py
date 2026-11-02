@@ -20,7 +20,7 @@ def create_products_blueprint(
     )
 
     @products_bp.route("", methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_products():
 
         cache_key = "products:all"
@@ -65,7 +65,7 @@ def create_products_blueprint(
             session.close()
 
     @products_bp.route("/<int:product_id>",methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_product(product_id):
 
         cache_key = f"product:{product_id}"
@@ -114,7 +114,7 @@ def create_products_blueprint(
             session.close()
 
     @products_bp.route("", methods=["POST"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def create_product():
 
@@ -170,7 +170,7 @@ def create_products_blueprint(
             session.close()
 
     @products_bp.route("/<int:product_id>",methods=["PUT"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def update_product(product_id):
 
@@ -218,7 +218,7 @@ def create_products_blueprint(
             session.close()
 
     @products_bp.route("/<int:product_id>",methods=["DELETE"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def delete_product(product_id):
 

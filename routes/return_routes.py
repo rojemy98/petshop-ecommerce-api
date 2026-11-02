@@ -27,7 +27,7 @@ def create_returns_blueprint(
 
 
     @returns_bp.route("", methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_returns():
 
         session = db_manager.create_session()
@@ -52,7 +52,7 @@ def create_returns_blueprint(
             session.close()
 
     @returns_bp.route("/<int:return_id>", methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_return(return_id):
 
         session = db_manager.create_session()
@@ -87,7 +87,7 @@ def create_returns_blueprint(
             session.close()    
 
     @returns_bp.route("/invoice/<string:invoice_number>",methods=["POST"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def create_return(invoice_number):
 
         data = request.get_json()
@@ -144,7 +144,7 @@ def create_returns_blueprint(
             session.close()
 
     @returns_bp.route("/<int:return_id>/status",methods=["PUT"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     @role_required("ADMIN")
     def update_return_status(return_id):
 

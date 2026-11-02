@@ -20,7 +20,7 @@ def create_invoices_blueprint(
     )
 
     @invoices_bp.route("",methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_invoices():
 
         session = db_manager.create_session()
@@ -42,7 +42,7 @@ def create_invoices_blueprint(
             session.close()
 
     @invoices_bp.route("/<string:invoice_number>",methods=["GET"])
-    @jwt_required(jwt_manager)
+    @jwt_required(jwt_manager, db_manager)
     def get_invoice(invoice_number):
 
         session = db_manager.create_session()
