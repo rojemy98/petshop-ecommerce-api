@@ -19,32 +19,33 @@ def create_products_blueprint(
         url_prefix="/products"
     )
 
+
     @products_bp.route("", methods=["GET"])
     @jwt_required(jwt_manager, db_manager)
     def get_products():
 
-        cache_key = "products:all"
+        is_admin = g.user["role"] == "ADMIN"
 
-        cached_data = cache_manager.get_data(
-            cache_key
+        cache_key = (
+            "products:admin:all"
+            if is_admin
+            else "products:available"
         )
 
+        cached_data = cache_manager.get_data(cache_key)
+
         if cached_data is not None:
-
-            print("CACHE HIT:", cache_key)
-
-            return jsonify(
-                json.loads(cached_data)
-            ), 200
-
-        print("CACHE MISS:", cache_key)
+            return jsonify(json.loads(cached_data)), 200
 
         session = db_manager.create_session()
 
         try:
             service = ProductService(session)
 
-            products = service.get_available_products()
+            if is_admin:
+                products = service.get_all_products()
+            else:
+                products = service.get_available_products()
 
             products_data = [
                 product.to_dict()
@@ -57,12 +58,11 @@ def create_products_blueprint(
                 CACHE_TTL
             )
 
-            return jsonify(
-                products_data
-            ), 200
+            return jsonify(products_data), 200
 
         finally:
             session.close()
+
 
     @products_bp.route("/<int:product_id>",methods=["GET"])
     @jwt_required(jwt_manager, db_manager)
@@ -153,9 +153,8 @@ def create_products_blueprint(
                 user_id=g.user["id"]
             )
 
-            cache_manager.delete_data(
-                "products:all"
-            )
+            cache_manager.delete_data("products:available")
+            cache_manager.delete_data("products:admin:all")
 
             return jsonify(
                 product.to_dict()
@@ -196,9 +195,8 @@ def create_products_blueprint(
                 f"product:{product_id}"
             )
 
-            cache_manager.delete_data(
-                "products:all"
-            )
+            cache_manager.delete_data("products:available")
+            cache_manager.delete_data("products:admin:all")
 
             return jsonify(
                 product.to_dict()
@@ -236,9 +234,8 @@ def create_products_blueprint(
                 f"product:{product_id}"
             )
 
-            cache_manager.delete_data(
-                "products:all"
-            )
+            cache_manager.delete_data("products:available")
+            cache_manager.delete_data("products:admin:all")
 
             return "", 204
 
