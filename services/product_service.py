@@ -47,11 +47,19 @@ class ProductService:
                 "A product with this name already exists."
             )
 
+        category = data["category"].strip()
+
+        if not category:
+            raise ValueError(
+                "Product category cannot be empty."
+            )
+
         price = self._validate_price(data["price"])
         stock = self._validate_stock(data["stock"])
 
         product = Product(
             name=data["name"].strip(),
+            category=category,
             price=price,
             stock=stock,
             created_by=user_id
@@ -78,6 +86,7 @@ class ProductService:
 
         allowed_fields = {
             "name",
+            "category",
             "price",
             "stock",
             "is_active"
@@ -113,6 +122,16 @@ class ProductService:
                 )
 
             product.name = name
+
+        if "category" in data:
+            category = data["category"].strip()
+
+            if not category:
+                raise ValueError(
+                    "Product category cannot be empty."
+                )
+
+            product.category = category
 
         # Validate price
         if "price" in data:

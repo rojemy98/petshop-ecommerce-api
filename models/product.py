@@ -26,6 +26,11 @@ class Product(Base):
         unique=True
     )
 
+    category: Mapped[str] = mapped_column(
+        String(80),
+        nullable=False
+    )
+
     price: Mapped[Decimal] = mapped_column(
         Numeric(12, 2),
         nullable=False
@@ -107,6 +112,7 @@ class Product(Base):
         return {
             "id": self.id,
             "name": self.name,
+            "category": self.category,
             "price": float(self.price),
             "stock": self.stock,
             "is_active": self.is_active,

@@ -134,6 +134,7 @@ def test_create_product_success(
 
     data = {
         "name": "Dog Food",
+        "category": "Alimentos",
         "price": 25.50,
         "stock": 10
     }
@@ -173,6 +174,7 @@ def test_create_product_duplicate_name(
 
     data = {
         "name": "Dog Food",
+        "category": "Alimentos",
         "price": 25.50,
         "stock": 10
     }
@@ -204,6 +206,7 @@ def test_create_product_negative_price(
 
     data = {
         "name": "Dog Food",
+        "category": "Alimentos",
         "price": -10,
         "stock": 10
     }
@@ -232,6 +235,7 @@ def test_create_product_negative_stock(
 
     data = {
         "name": "Dog Food",
+        "category": "Alimentos",
         "price": 20,
         "stock": -1
     }
@@ -264,6 +268,7 @@ def test_create_product_rollback_on_repository_error(
 
     data = {
         "name": "Dog Food",
+        "category": "Alimentos",
         "price": 25.50,
         "stock": 10
     }
@@ -295,6 +300,7 @@ def test_update_product_success(
 
     product.id = 1
     product.name = "Old Name"
+    product.category = "Old category"
     product.price = Decimal("10.00")
     product.stock = 5
     product.is_active = True
@@ -310,6 +316,7 @@ def test_update_product_success(
 
     data = {
         "name": "New Dog Food",
+        "category": "New category",
         "price": 30.50,
         "stock": 20,
         "is_active": True
@@ -324,6 +331,7 @@ def test_update_product_success(
     assert result == product
 
     assert product.name == "New Dog Food"
+    assert product.category == "New category"
     assert product.price == Decimal("30.5")
     assert product.stock == 20
     assert product.is_active is True
@@ -354,6 +362,7 @@ def test_update_product_partial_update(
 
     product.id = 1
     product.name = "Dog Food"
+    product.category = "Alimentos"
     product.price = Decimal("20.00")
     product.stock = 10
     product.is_active = True
@@ -374,6 +383,7 @@ def test_update_product_partial_update(
 
     assert result.stock == 25
     assert result.name == "Dog Food"
+    assert result.category == "Alimentos"
     assert result.price == Decimal("20.00")
     assert result.updated_by == 5
 

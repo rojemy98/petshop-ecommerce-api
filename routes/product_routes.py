@@ -150,6 +150,7 @@ def create_products_blueprint(
 
         required_fields = [
             "name",
+            "category",
             "price",
             "stock"
         ]
