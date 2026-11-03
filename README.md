@@ -1,150 +1,148 @@
 # PetShop E-Commerce API
 
-REST API developed with Python and Flask for managing a pet shop e-commerce platform.
+A RESTful API built with Python and Flask for managing an e-commerce platform for pet products.
 
-The application provides authentication, role-based authorization, product management, shopping carts, checkout, billing addresses, invoices, payments, product returns, inventory management, Redis caching, and login history.
+The application provides user authentication, role-based authorization, product and inventory management, shopping carts, checkout, billing addresses, invoices, payments, product returns, login history, and Redis caching.
 
-The project uses a layered architecture separating routes, services, repositories, and database models.
+The backend follows a layered architecture that separates HTTP routes, business logic, database operations, and data models.
 
 ## Table of Contents
 
-* [Features](#features)
-* [Architecture](#architecture)
-* [Project Structure](#project-structure)
-* [Technologies](#technologies)
-* [Database](#database)
-* [Database ER Diagram](#database-er-diagram)
-* [API Documentation](#api-documentation)
-* [Installation](#installation)
-* [Project Setup](#project-setup)
-* [Quick Start](#quick-start)
-* [Authentication](#authentication)
-* [Roles](#roles)
-* [Redis Cache](#redis-cache)
-* [Transactions](#transactions)
-* [Testing](#testing)
-* [Automated Test Report](#automated-test-report)
-* [Test Coverage](#test-coverage)
-* [Security](#security)
-* [Recommended .gitignore](#recommended-gitignore)
-* [Author](#author)
+- [Features](#features)
+- [Architecture](#architecture)
+- [Project Structure](#project-structure)
+- [Technologies](#technologies)
+- [Database](#database)
+- [API Documentation](#api-documentation)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Project Setup](#project-setup)
+- [Running the Application](#running-the-application)
+- [Authentication and Authorization](#authentication-and-authorization)
+- [Redis Caching](#redis-caching)
+- [Transactions](#transactions)
+- [Database Seeding](#database-seeding)
+- [Testing](#testing)
+- [Security](#security)
+- [Author](#author)
 
 ---
 
 ## Features
 
-### Authentication and Authorization
+### Authentication and User Management
 
-* User registration and login
-* Password hashing
-* JWT authentication using RS256
-* Role-based authorization
-* CLIENT and ADMIN roles
-* Login attempt history
-* Protected endpoints
+- User registration and login.
+- Password hashing.
+- JWT authentication using RSA and RS256.
+- Role-based access control.
+- CLIENT and ADMIN roles.
+- Login attempt history.
+- User profile management.
+- Password changes.
+- Administrative user management.
+- Session revocation for administrative operations.
 
-### Product Management
+### Product and Inventory Management
 
 Administrators can:
 
-* Create products
-* Update products
-* Disable products
-* Manage product stock
+- Create products.
+- Update product information.
+- Update prices and stock.
+- Deactivate products through soft deletion.
+- View the complete product inventory.
 
 Clients can:
 
-* View available products
-* Add products to their shopping cart
+- Browse available products.
+- View product details.
+- Access products available in the store.
+
+Products include information such as name, category, price, stock, active status, and audit information.
 
 ### Shopping Cart
 
-Clients can:
+Authenticated users can:
 
-* Create or retrieve their active cart
-* Add products
-* Modify product quantities
-* Remove products
-* View previous carts
-* Abandon carts
-* Complete checkout
+- Create a shopping cart.
+- Retrieve their active cart.
+- View their previous carts.
+- Add products.
+- Update product quantities.
+- Remove products.
+- Abandon an active cart.
+- Complete checkout.
 
-Product stock is validated when products are added to the cart and validated again during checkout.
+Each user can have only one active cart at a time.
 
-Stock is only deducted when checkout is successfully completed.
+The API validates product availability and stock when products are added or quantities are updated. Stock is deducted only after a successful checkout.
 
-### Billing Addresses
+**Important:** `GET /carts/active` only retrieves an existing active cart. It does not create one. Use `POST /carts` to create a cart.
 
-Clients can:
-
-* Create billing addresses
-* View their addresses
-* Update addresses
-* Delete addresses
-
-Ownership validation prevents users from accessing billing addresses belonging to other users.
-
-### Checkout
+### Checkout and Payments
 
 The checkout process:
 
-1. Validates the cart and its ownership.
-2. Validates that the cart is active and contains products.
+1. Validates cart ownership and status.
+2. Checks that the cart contains products.
 3. Validates the selected billing address.
 4. Validates product availability and stock.
 5. Calculates the purchase total.
 6. Creates an invoice.
 7. Creates invoice product records.
 8. Updates product stock.
-9. Creates the payment record.
+9. Creates a payment record.
 10. Marks the cart as completed.
 11. Invalidates affected Redis cache entries.
 
-The database operations are executed as a transaction.
+The checkout operation uses database transactions to maintain data consistency.
+
+### Billing Addresses
+
+Authenticated users can:
+
+- Create billing addresses.
+- Retrieve their addresses.
+- Update addresses.
+- Delete addresses.
+
+Ownership validation prevents users from accessing addresses belonging to other users.
 
 ### Invoices
 
-Invoices contain:
+Invoices are generated through the checkout process and contain purchase information, including:
 
-* Unique invoice number
-* User
-* Billing address
-* Products purchased
-* Product quantities
-* Purchase prices
-* Total amount
-* Payment information
-* Purchase date
-* Invoice status
+- Invoice number.
+- Customer information.
+- Billing address.
+- Purchased products and quantities.
+- Purchase prices.
+- Total amount.
+- Payment information.
+- Invoice status.
 
-Clients can access only their own invoices.
+Clients can access only their own invoices. Administrators can access invoices across the system.
 
-Administrators can access all invoices.
+### Product Returns
 
-### Returns
+The API supports return requests associated with existing invoices.
 
-The API supports product return requests.
+Supported return statuses:
 
-Return statuses:
-
-* `REQUESTED`
-* `APPROVED`
-* `REJECTED`
-* `COMPLETED`
+- `REQUESTED`
+- `APPROVED`
+- `REJECTED`
+- `COMPLETED`
 
 When a return is completed:
 
-* Returned quantities are validated.
-* Product stock is restored.
-* Invoice return status is recalculated.
-* Redis product cache is invalidated.
+- Returned quantities are validated.
+- Product stock is restored.
+- Invoice return status is recalculated.
+- Relevant product cache entries are invalidated.
 
-Invoice statuses include:
-
-* `PAID`
-* `PARTIALLY_REFUNDED`
-* `REFUNDED`
-* `CANCELLED`
+The service also validates previously completed return quantities to prevent returning more units than originally purchased.
 
 ---
 
@@ -153,41 +151,43 @@ Invoice statuses include:
 The project follows a layered architecture:
 
 ```text
-HTTP Request
-     |
-     v
-   Routes
-     |
-     v
-  Services
-     |
-     v
-Repositories
-     |
-     v
- SQLAlchemy
-     |
-     v
- PostgreSQL
+             HTTP Request
+                  |
+                  v
+                Routes
+                  |
+                  v
+               Services
+                  |
+                  v
+             Repositories
+                  |
+                  v
+              SQLAlchemy
+                  |
+                  v
+              PostgreSQL
 ```
-
-Each layer has a specific responsibility.
 
 **Routes**
 
-Handle HTTP requests, authentication, authorization, request data, and HTTP responses.
+Handle HTTP requests, authentication, authorization, request validation, and HTTP responses.
 
 **Services**
 
-Contain business rules and coordinate operations between repositories.
+Contain business rules and coordinate application operations.
 
 **Repositories**
 
-Handle database operations through SQLAlchemy.
+Encapsulate database queries and persistence operations using SQLAlchemy.
 
 **Models**
 
-Represent database entities and relationships.
+Represent database entities, attributes, and relationships.
+
+**Infrastructure**
+
+Redis provides caching, while the database manager handles SQLAlchemy sessions and database connections.
 
 ---
 
@@ -196,12 +196,6 @@ Represent database entities and relationships.
 ```text
 petshop-ecommerce-api/
 │
-├── app.py
-├── .env
-├── .gitignore
-├── README.md
-├── requirements.txt
-│
 ├── auth/
 │   └── decorators.py
 │
@@ -209,17 +203,24 @@ petshop-ecommerce-api/
 │   └── cache_manager.py
 │
 ├── config/
-│   ├── settings.py
-│   └── constants.py
+│   ├── __init__.py
+│   ├── constants.py
+│   └── settings.py
 │
 ├── database/
+│   ├── __init__.py
 │   └── db_manager.py
+│
+├── docs/
+│   ├── API.md
+│   └── database-diagram.jpg
 │
 ├── keys/
 │   ├── private.pem
 │   └── public.pem
 │
 ├── models/
+│   ├── __init__.py
 │   ├── base.py
 │   ├── user.py
 │   ├── product.py
@@ -234,6 +235,7 @@ petshop-ecommerce-api/
 │   └── return_product.py
 │
 ├── repositories/
+│   ├── __init__.py
 │   ├── base_repository.py
 │   ├── users_repository.py
 │   ├── products_repository.py
@@ -247,55 +249,72 @@ petshop-ecommerce-api/
 │   └── return_products_repository.py
 │
 ├── routes/
+│   ├── __init__.py
 │   ├── auth_routes.py
 │   ├── product_routes.py
 │   ├── cart_routes.py
 │   ├── billing_address_routes.py
 │   ├── invoice_routes.py
-│   └── return_routes.py
-│
-├── services/
-│   ├── auth_service.py
-│   ├── jwt_manager.py
-│   ├── product_service.py
-│   ├── cart_service.py
-│   ├── billing_address_service.py
-│   ├── checkout_service.py
-│   ├── invoice_service.py
-│   └── return_service.py
+│   ├── return_routes.py
+│   └── user_routes.py
 │
 ├── scripts/
 │   ├── create_tables.py
 │   ├── generate_keys.py
 │   ├── run_tests.py
-│   └── seed.py
+│   ├── seed.py
+│   ├── test_cache.py
+│   └── test_jwt_manager.py
 │
-└── tests/
-    ├── test_auth_service.py
-    ├── test_product_service.py
-    ├── test_cart_service.py
-    ├── test_billing_address_service.py
-    ├── test_checkout_service.py
-    ├── test_invoice_service.py
-    └── test_return_service.py
+├── services/
+│   ├── __init__.py
+│   ├── auth_service.py
+│   ├── billing_address_service.py
+│   ├── cart_service.py
+│   ├── checkout_service.py
+│   ├── invoice_service.py
+│   ├── jwt_manager.py
+│   ├── product_service.py
+│   ├── return_service.py
+│   └── user_service.py
+│
+├── tests/
+│   ├── test_auth_service.py
+│   ├── test_product_service.py
+│   ├── test_cart_service.py
+│   ├── test_billing_address_service.py
+│   ├── test_checkout_service.py
+│   ├── test_invoice_service.py
+│   └── test_return_service.py
+│
+├── app.py
+├── .env.example
+├── .gitignore
+├── requirements.txt
+└── README.md
 ```
+
+_The RSA key files are generated locally and should not be committed with private key contents._
 
 ---
 
 ## Technologies
 
-The project uses:
-
-* Python
-* Flask
-* PostgreSQL
-* SQLAlchemy
-* Redis
-* PyJWT
-* RSA / RS256
-* Werkzeug
-* pytest
-* pytest-cov
+| Technology    | Purpose                         |
+| ------------- | ------------------------------- |
+| Python        | Backend programming language    |
+| Flask         | REST API framework              |
+| PostgreSQL    | Relational database             |
+| SQLAlchemy    | ORM and database operations     |
+| Redis         | Product data caching            |
+| PyJWT         | JWT authentication              |
+| RS256 / RSA   | Asymmetric token signing        |
+| Werkzeug      | Password hashing utilities      |
+| Flask-Cors    | Cross-origin resource sharing   |
+| pytest        | Automated testing               |
+| pytest-cov    | Test coverage reporting         |
+| Faker         | Test data generation            |
+| python-dotenv | Environment variable management |
 
 ---
 
@@ -303,7 +322,7 @@ The project uses:
 
 The application uses PostgreSQL with SQLAlchemy ORM.
 
-Database objects are stored inside the PostgreSQL schema:
+Database objects are organized under the following schema:
 
 ```text
 petshop_ecommerce
@@ -311,27 +330,23 @@ petshop_ecommerce
 
 Main entities:
 
-```text
-User
-LoginHistory
-Product
-Cart
-CartProduct
-BillingAddress
-Invoice
-InvoiceProduct
-Payment
-Return
-ReturnProduct
-```
+- User
+- LoginHistory
+- Product
+- Cart
+- CartProduct
+- BillingAddress
+- Invoice
+- InvoiceProduct
+- Payment
+- Return
+- ReturnProduct
 
-SQLAlchemy relationships are used to represent associations between entities.
+SQLAlchemy models define the relationships between entities.
 
----
+### Database ER Diagram
 
-## Database ER Diagram
-
-The following Entity-Relationship Diagram represents the PostgreSQL database structure used by the application.
+The database entity-relationship diagram is available here:
 
 ![PetShop E-Commerce Database ER Diagram](docs/database-diagram.jpg)
 
@@ -339,9 +354,32 @@ The following Entity-Relationship Diagram represents the PostgreSQL database str
 
 ## API Documentation
 
-Complete endpoint documentation, authentication requirements, request bodies, and examples are available here:
+Detailed API documentation is available in:
 
 [View API Documentation](docs/API.md)
+
+The documentation includes:
+
+- Endpoint descriptions.
+- HTTP methods and URL paths.
+- Authentication requirements.
+- User role permissions.
+- Request body examples.
+- Response examples.
+- HTTP status codes.
+- Validation rules.
+
+### Main Endpoint Groups
+
+| Resource          | Base path            | Description                       |
+| ----------------- | -------------------- | --------------------------------- |
+| Authentication    | `/auth`              | Registration, login, current user |
+| Users             | `/users`             | User and profile management       |
+| Products          | `/products`          | Product catalog and inventory     |
+| Carts             | `/carts`             | Shopping cart and checkout        |
+| Billing Addresses | `/billing-addresses` | Billing address management        |
+| Invoices          | `/invoices`          | Invoice retrieval                 |
+| Returns           | `/returns`           | Product return management         |
 
 ---
 
@@ -359,16 +397,16 @@ git clone https://github.com/rojemy98/petshop-ecommerce-api.git
 cd petshop-ecommerce-api
 ```
 
-### 3. Create and activate a virtual environment
+### 3. Create a virtual environment
 
-#### Windows
+**Windows**
 
 ```powershell
 python -m venv venv
 .\venv\Scripts\Activate.ps1
 ```
 
-#### Linux / macOS
+**Linux / macOS**
 
 ```bash
 python3 -m venv venv
@@ -381,33 +419,70 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 5. Configure environment variables
+The project also requires `Flask-Cors`, which must be included in `requirements.txt` because the application imports it in `app.py`.
 
-Create a `.env` file in the project root.
+If it is not already listed, install it with:
+
+```bash
+pip install Flask-Cors
+```
+
+For reproducible installations, add the installed version to `requirements.txt`.
+
+---
+
+## Configuration
+
+Create a `.env` file in the project root using `.env.example` as a reference.
 
 Example:
 
 ```env
+# PostgreSQL
 DATABASE_URL=postgresql+psycopg://username:password@localhost:5432/postgres
+
+# Redis
 REDIS_URL=redis://localhost:6379/0
 
+# Cache expiration in seconds
 CACHE_TTL=600
 
+# JWT
 JWT_ALGORITHM=RS256
 JWT_ACCESS_TOKEN_EXPIRES=900
 ```
 
-Make sure PostgreSQL and Redis are available before starting the application.
+### Environment Variables
 
-> Do not commit the `.env` file to Git.
+| Variable                   | Description                      | Example                                                      |
+| -------------------------- | -------------------------------- | ------------------------------------------------------------ |
+| `DATABASE_URL`             | PostgreSQL connection string     | `postgresql+psycopg://user:password@localhost:5432/postgres` |
+| `REDIS_URL`                | Redis connection URL             | `redis://localhost:6379/0`                                   |
+| `CACHE_TTL`                | Cache expiration time in seconds | `600`                                                        |
+| `JWT_ALGORITHM`            | JWT signing algorithm            | `RS256`                                                      |
+| `JWT_ACCESS_TOKEN_EXPIRES` | Access token lifetime in seconds | `900`                                                        |
+
+The application requires both `DATABASE_URL` and `REDIS_URL`.
+
+The default JWT algorithm is RS256, and the default access token lifetime is 900 seconds (15 minutes).
+
+**Important:** Never commit your actual `.env` file or private RSA key to source control.
 
 ---
 
 ## Project Setup
 
-After installing the dependencies and configuring the `.env` file, run the following setup steps from the `petshop-ecommerce-api` directory.
+Complete the following steps before running the application.
 
-### 1. Generate RSA Keys
+### 1. Start PostgreSQL
+
+Make sure PostgreSQL is installed and running.
+
+Create the database specified in `DATABASE_URL` if it does not already exist.
+
+The application creates its tables inside the `petshop_ecommerce` schema.
+
+### 2. Generate RSA Keys
 
 The application uses RS256 for JWT authentication.
 
@@ -417,7 +492,7 @@ Run:
 python -m scripts.generate_keys
 ```
 
-This should generate:
+This generates the following files:
 
 ```text
 keys/
@@ -425,45 +500,29 @@ keys/
 └── public.pem
 ```
 
-The private key is used to sign JWT tokens and the public key is used to verify them.
+The private key signs JWT tokens. The public key verifies them.
 
-> Never commit `private.pem` to a public repository.
+Do not share or commit the private key.
 
-### 2. Create the Database Tables
+### 3. Create Database Tables
 
-Make sure the PostgreSQL database specified in `DATABASE_URL` already exists.
-
-Then run:
+Run the following command from the project root:
 
 ```bash
 python -m scripts.create_tables
 ```
 
-This creates the required tables using SQLAlchemy ORM inside the PostgreSQL schema:
+This creates the database schema and tables using SQLAlchemy.
 
-```text
-petshop_ecommerce
-```
+The PostgreSQL database itself must already exist.
 
-No SQL scripts are required.
+### 4. Start Redis
 
-### 3. Seed the Database
+Redis is used to cache product information.
 
-To populate the database with initial or test data, run:
+For local development, Redis can be run using Docker.
 
-```bash
-python -m scripts.seed
-```
-
-This step is useful for creating sample users, products, invoices, or other initial data required for testing the API.
-
-### 4. Configure Redis
-
-The application uses Redis to cache product information.
-
-Redis does not need to be hosted in the cloud. For local development, it can be executed locally using Docker.
-
-Make sure Docker is installed and running, then create a Redis container:
+Create and start a Redis container:
 
 ```bash
 docker run --name petshop-redis -p 6379:6379 -d redis
@@ -475,13 +534,13 @@ Verify that Redis is running:
 docker exec -it petshop-redis redis-cli ping
 ```
 
-The expected response is:
+Expected response:
 
 ```text
 PONG
 ```
 
-Redis will now be available at:
+Redis will be available at:
 
 ```text
 redis://localhost:6379/0
@@ -489,21 +548,25 @@ redis://localhost:6379/0
 
 #### Managing the Redis Container
 
-If the container already exists but is stopped, start it with:
+Start an existing container:
 
 ```bash
 docker start petshop-redis
 ```
 
-To stop it:
+Stop the container:
 
 ```bash
 docker stop petshop-redis
 ```
 
-You do not need to run `docker run` every time. That command creates the container. After it has been created, use `docker start` and `docker stop`.
+The `docker run` command is only needed when creating the container for the first time.
 
-### 5. Run the Application
+---
+
+## Running the Application
+
+After configuring the environment and starting PostgreSQL and Redis, run:
 
 ```bash
 python app.py
@@ -515,121 +578,99 @@ The API will be available at:
 http://localhost:5000
 ```
 
----
-
-## Quick Start
-
-After configuring `.env`, the complete setup sequence is:
-
-```bash
-python -m scripts.generate_keys
-python -m scripts.create_tables
-python -m scripts.seed
-python app.py
-```
+The application uses Flask's development server. For production deployments, use an appropriate production WSGI server and deployment configuration.
 
 ---
 
-## Authentication
+## Authentication and Authorization
 
-Protected endpoints require a JWT access token.
+The API uses JWT access tokens signed with RSA and RS256.
 
-Send the token using:
+Protected endpoints require the following HTTP header:
 
 ```http
 Authorization: Bearer <access_token>
 ```
 
-Tokens contain the user's identifier and role.
+### Authentication Endpoints
 
-Example payload:
+| Method | Endpoint         | Description                             |
+| ------ | ---------------- | --------------------------------------- |
+| POST   | `/auth/register` | Register a CLIENT account               |
+| POST   | `/auth/login`    | Authenticate a user                     |
+| GET    | `/auth/me`       | Retrieve authenticated user information |
 
-```json
-{
-    "id": 1,
-    "role": "CLIENT"
-}
-```
+### User Roles
 
-Access tokens expire automatically according to:
+**CLIENT**
 
-```env
-JWT_ACCESS_TOKEN_EXPIRES=900
-```
+Clients can:
 
----
+- Browse available products.
+- Manage their own shopping carts.
+- Manage their own billing addresses.
+- Complete purchases.
+- View their own invoices.
+- Request product returns.
+- Manage their own profile and password.
 
-## Roles
+**ADMIN**
 
-### CLIENT
+Administrators can:
 
-A client can perform operations such as:
+- Manage products and inventory.
+- View administrative product listings.
+- Manage users.
+- Access administrative resources.
+- View invoices across the system.
+- Manage return request statuses.
+- Revoke user sessions.
 
-* View products
-* Manage their shopping cart
-* Manage their billing addresses
-* Complete purchases
-* View their invoices
-* Request product returns
-
-### ADMIN
-
-An administrator can perform administrative operations such as:
-
-* Create products
-* Update products
-* Disable products
-* View administrative resources
-* Manage return statuses
+Authorization and resource ownership are validated by the backend.
 
 ---
 
-## Redis Cache
+## Redis Caching
 
-Redis is used to reduce repeated database queries for product information.
+Redis reduces repeated PostgreSQL queries for frequently requested product information.
 
-Examples of cache keys:
+### Cache Keys
 
-```text
-products:all
-product:<product_id>
-```
+The application uses the following product cache keys:
 
-The default cache TTL is:
+| Key                    | Purpose                                     |
+| ---------------------- | ------------------------------------------- |
+| `products:available`   | Available products for the storefront       |
+| `products:admin:all`   | Complete product listing for administrators |
+| `product:<product_id>` | Individual product information              |
+
+### Cache TTL
+
+The default cache expiration time is:
 
 ```text
 600 seconds
 ```
 
-or:
+Equivalent to:
 
 ```text
 10 minutes
 ```
 
-### Why Use a TTL?
-
-Product information is frequently requested.
-
-Caching this information:
-
-* Reduces PostgreSQL queries.
-* Improves response times.
-* Reduces database workload.
-
-The TTL guarantees that cached information eventually expires even if explicit invalidation does not occur.
+The value can be changed through the `CACHE_TTL` environment variable.
 
 ### Cache Invalidation
 
-Cache entries are invalidated when product information may change.
+Relevant cache entries are invalidated when product information changes.
 
 Examples include:
 
-* Product creation
-* Product update
-* Product deletion/deactivation
-* Checkout
-* Completed returns
+- Product creation.
+- Product updates.
+- Product deactivation.
+- Checkout operations.
+- Completed product returns.
 
 PostgreSQL remains the source of truth.
 
@@ -639,7 +680,7 @@ PostgreSQL remains the source of truth.
 
 Operations that modify multiple database records use SQLAlchemy transactions.
 
-For example, checkout can modify:
+For example, checkout can affect:
 
 ```text
 Cart
@@ -649,154 +690,138 @@ Payment
 Product stock
 ```
 
-If an error occurs before the transaction is completed:
+Transactions help ensure that related database changes are completed consistently.
 
-```python
-session.rollback()
+If an operation fails, the transaction is rolled back to prevent partially completed operations.
+
+Successful operations are committed to the database.
+
+---
+
+## Database Seeding
+
+The project includes a seed script to populate the database with development data.
+
+Run:
+
+```bash
+python -m scripts.seed
 ```
 
-is used to prevent partially completed purchases.
+The script creates sample users and products.
 
-Successful operations use:
+The current seed includes:
 
-```python
-session.commit()
+- An ADMIN user.
+- A CLIENT user.
+- Additional sample CLIENT users.
+- 50 sample products distributed across five categories.
+
+### Development Credentials
+
+The seed script provides the following development accounts:
+
+**ADMIN**
+
+```text
+Email: admin@petshop.com
+Password: Admin123!
 ```
+
+**CLIENT**
+
+```text
+Email: client@petshop.com
+Password: Client123!
+```
+
+These credentials are intended exclusively for local development and testing. Do not use them in production.
 
 ---
 
 ## Testing
 
-Unit tests are implemented using `pytest`.
+The project uses `pytest` for automated unit testing and `pytest-cov` for coverage reporting.
 
-Run the complete test suite:
+### Run the Test Suite
 
 ```bash
 pytest -v
 ```
 
-Run service coverage:
+### Run Tests with Coverage
 
 ```bash
 pytest --cov=services --cov-report=term-missing
 ```
 
-Generate an HTML coverage report:
+### Generate an HTML Coverage Report
 
 ```bash
 pytest --cov=services --cov-report=html
 ```
 
-Then open:
+The generated report can be opened at:
 
 ```text
 htmlcov/index.html
 ```
 
----
+### Automated Test Runner
 
-## Automated Test Report
+The repository also includes a script that executes the test suite and generates a service-layer coverage report.
 
-The project includes a test runner that executes the complete unit test suite and generates a coverage report.
+Run:
 
 ```bash
 python -m scripts.run_tests
 ```
 
----
+The script returns a non-zero exit code if the tests fail.
 
-## Test Coverage
+### Test Scenarios
 
-Current service-layer coverage:
+The test suite covers important application scenarios, including:
 
-```text
-Name                                  Cover
--------------------------------------------
-services/auth_service.py               100%
-services/billing_address_service.py    100%
-services/cart_service.py                98%
-services/checkout_service.py           100%
-services/invoice_service.py            100%
-services/jwt_manager.py                100%
-services/product_service.py            100%
-services/return_service.py             100%
--------------------------------------------
-TOTAL                                   99%
-```
+- Authentication and invalid credentials.
+- Duplicate user registration.
+- Product validation.
+- Insufficient product stock.
+- Shopping cart operations.
+- Billing address ownership.
+- Checkout operations and failures.
+- Invoice ownership.
+- Product return validation.
+- Invalid return status transitions.
+- Transaction rollback behavior.
 
-The tests cover both successful operations and important failure scenarios such as:
-
-* Invalid authentication
-* Duplicate users
-* Invalid product information
-* Insufficient stock
-* Invalid cart operations
-* Unauthorized resource access
-* Invalid billing addresses
-* Checkout failures
-* Invoice ownership
-* Invalid return quantities
-* Invalid return status transitions
-* Transaction rollbacks
-
-Repositories, database connections, Redis, and JWT dependencies are mocked where appropriate so unit tests remain isolated from external infrastructure.
+Coverage results should be generated from the current codebase rather than treated as a fixed project value.
 
 ---
 
 ## Security
 
-The project implements several security practices:
+The application implements several security practices:
 
-* Password hashing
-* JWT authentication
-* RSA-based RS256 token signing
-* Role-based authorization
-* Resource ownership validation
-* Login attempt history
-* Environment variables for secrets
-* Private key separation
-* Input and business-rule validation
+- Password hashing.
+- JWT authentication.
+- RSA-based RS256 token signing.
+- Role-based authorization.
+- Resource ownership validation.
+- Login attempt history.
+- Environment-based configuration.
+- Input validation and business-rule validation.
+- Separation of private and public RSA keys.
 
-Sensitive files should never be committed to source control.
+### Security Considerations
 
----
-
-## Recommended `.gitignore`
-
-```gitignore
-# Environment variables
-.env
-.env.*
-
-# Virtual environments
-venv/
-.venv/
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Testing
-.pytest_cache/
-.coverage
-.coverage.*
-htmlcov/
-
-# IDE
-.vscode/
-.idea/
-
-# OS
-.DS_Store
-Thumbs.db
-
-# RSA private keys
-keys/private.pem
-*.key
-```
-
-The public key can normally be distributed because it cannot be used to sign tokens. The private key must remain secret.
+- Never commit `.env` files containing real credentials.
+- Never expose the RSA private key.
+- Use strong database credentials.
+- Do not use development seed credentials in production.
+- Configure production CORS origins explicitly.
+- Use a production WSGI server instead of Flask's development server.
+- Keep dependencies updated.
 
 ---
 
@@ -804,4 +829,6 @@ The public key can normally be distributed because it cannot be used to sign tok
 
 **Rojemy Emanuel Diaz**
 
-Computer Engineering
+GitHub: [rojemy98](https://github.com/rojemy98)
+
+Repository: [petshop-ecommerce-api](https://github.com/rojemy98/petshop-ecommerce-api)
